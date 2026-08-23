@@ -1,197 +1,258 @@
-# eCommerce Platform Project - MERN Stack
+# MERN eCommerce — DevOps Project
 
-Welcome to the eCommerce Platform Project built using the MERN (MongoDB, Express.js, React, Node.js) Stack. This project provides a robust and full-featured online shopping platform with various functionalities to enhance the user experience.
+A full-stack **MERN eCommerce application** containerized with **Docker**, orchestrated with **Docker Compose and Kubernetes (Kind)**, and monitored using **Prometheus & Grafana**.
 
-**Live App Demo** : [https://mern-shop-abxs.onrender.com/](https://mern-shop-abxs.onrender.com/)</br>
-Note: Please be aware that Render's free tier will automatically shut down after 15 minutes of inactivity. Consequently, the first request after reactivation may experience a delay, but subsequent requests will be faster.
+## 🚀 Overview
 
-## Features
+This project demonstrates a practical DevOps workflow:
 
-- **Full-Featured Shopping Cart**: Seamless shopping cart functionality for users to add, remove, and manage products.
-- **Product Reviews and Ratings**: Users can leave reviews and provide ratings for products.
-- **Top Products Carousel**: Display a carousel of top-rated or featured products.
-- **Product Pagination**: Navigate through products efficiently with pagination.
-- **Product Search Feature**: Easily search for products based on keywords.
-- **User Profile with Orders**: Users can create profiles and track their order history.
-- **Admin Dashboard**: Comprehensive dashboard for administrators to manage admins, products, users, and orders.
-- **Admin Admin Management**: Manage admin accounts.
-- **Admin Product Management**: Add, edit, and delete products from the platform.
-- **Admin User Management**: Manage user accounts.
-- **Admin Order Details Page**: Access detailed information about each order.
-- **Mark Orders as Delivered Option**: Ability to update order status to "delivered."
-- **Checkout Process**: Seamless checkout with options for shipping and payment methods.
-- **Razorpay Integration**: Secure payment processing through Razorpay.
-- **Database Seeder**: Easily populate the database with sample products and users.
+**MERN Application → Docker → Docker Compose → Kubernetes → Monitoring**
 
-## Getting Started
+### Application Features
 
-### Prerequisites
+* Shopping cart, product search, pagination, reviews & ratings
+* User authentication, profiles and order history
+* Admin dashboard for users, products, orders and admins
+* Razorpay payment integration
+* Email functionality
+* Database seeding
 
-1. Fork the repository to your GitHub account.
-2. Clone the forked repository to your local machine
+### DevOps Stack
 
-```bash
-git clone https://github.com/your-username/MERN-eCommerce.git
+| Area            | Technology                       |
+| --------------- | -------------------------------- |
+| Application     | React, Node.js, Express, MongoDB |
+| Containers      | Docker                           |
+| Orchestration   | Docker Compose, Kubernetes       |
+| Kubernetes      | Kind                             |
+| Web Server      | Nginx                            |
+| Storage         | Kubernetes PVC                   |
+| Monitoring      | Prometheus, Grafana              |
+| Version Control | Git, GitHub                      |
+
+---
+
+## 🏗️ Architecture
+
+```text
+                 ┌───────────────┐
+                 │ React + Nginx │
+                 │   Frontend    │
+                 └───────┬───────┘
+                         │
+                         ▼
+                 ┌───────────────┐
+                 │ Node + Express│
+                 │    Backend    │
+                 └───────┬───────┘
+                         │
+                         ▼
+                 ┌───────────────┐
+                 │    MongoDB    │
+                 │ StatefulSet   │
+                 │     + PVC     │
+                 └───────────────┘
+
+              Prometheus ──► Grafana
 ```
 
+---
+
+## 📁 Structure
+
+```text
+MERN-eCommerce/
+├── backend/                  # Node.js / Express API
+├── frontend/                 # React application
+├── k8s/                      # Kubernetes manifests
+│   ├── kind/config.yml
+│   ├── prometheus/
+│   ├── *-deployment.yml
+│   ├── *-service.yml
+│   └── mongo-db-*.yml
+├── monitoring/               # Monitoring configuration
+├── uploads/                  # Product images
+├── docker-compose.yml
+└── README.md
+```
+
+---
+
+## ⚙️ Local Development
+
 ```bash
+git clone https://github.com/aliahmadshah56/MERN-eCommerce.git
 cd MERN-eCommerce
-```
 
-3. Create a MongoDB database and obtain your MongoDB URI from [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
-4. Create a Razorpay account and obtain your Key ID and Key Secret from [Razorpay](https://razorpay.com/).
-5. Create a Brevo account and generate a new SMTP Key from [Brevo](https://www.brevo.com/)
-
-### Env Variables
-
-1. Rename the `.env.example` file to `.env` and add the following environment variables:
-
-```dotenv
-NODE_ENV=development
-PORT=5000
-JWT_SECRET=ADD_YOUR_JWT_SECRET_HERE
-MONGO_URI=ADD_YOUR_MONGO_URI_HERE
-RAZORPAY_KEY_ID=ADD_YOUT_RAZORPAY_KEY_ID
-RAZORPAY_KEY_SECRET=ADD_YOUR_RAZORPAY_KEY_SECRET
-PAGINATION_MAX_LIMIT=12 # This will show 12 products per page; you can change it.
-EMAIL_HOST=smtp-relay.brevo.com
-EMAIL_PORT=587
-EMAIL_USER=ADD_YOUR_BREVO_LOGIN
-EMAIL_PASS=ADD_YOUR_BREVO_PASSWORD
-EMAIL_FROM=ADD_YOUR_BREVO_LOGIN
-```
-
-### Install Dependencies
-
-Run the following commands to install dependencies for both the frontend and backend:
-
-```bash
 npm install
-cd frontend
-npm install
-```
-
-### Run
-
-To run both the frontend and backend concurrently, use:
-
-```bash
+cd frontend && npm install && cd ..
 npm run dev
 ```
 
-To run only the backend:
+Backend only:
 
 ```bash
 npm run server
 ```
 
-## Build & Deploy
+Create `.env` with your MongoDB, JWT, Razorpay and email credentials. **Never commit secrets to Git.**
 
-To create a production build for the frontend:
+---
+
+## 🐳 Docker
+
+Build images:
 
 ```bash
-cd frontend
-npm run build
+docker build -t mern-backend ./backend
+docker build -t mern-frontend ./frontend
 ```
 
-## Seed Database
-
-Use the following commands to seed the database with sample users and products, or destroy all data:
+Run:
 
 ```bash
-# Import data
-npm run data:import
+docker run -d -p 5000:5000 mern-backend
+docker run -d -p 3000:80 mern-frontend
+```
 
-# Destroy data
+Useful commands:
+
+```bash
+docker ps
+docker logs <container>
+docker exec -it <container> sh
+```
+
+---
+
+## 🐳 Docker Compose
+
+Start the application stack:
+
+```bash
+docker compose up -d
+```
+
+Useful commands:
+
+```bash
+docker compose ps
+docker compose logs -f
+docker compose up -d --build
+docker compose down
+```
+
+---
+
+## ☸️ Kubernetes
+
+Create the Kind cluster:
+
+```bash
+kind create cluster --config k8s/kind/config.yml
+```
+
+Deploy:
+
+```bash
+kubectl apply -f k8s/
+```
+
+Verify:
+
+```bash
+kubectl get pods
+kubectl get svc
+kubectl get pvc
+```
+
+### Kubernetes Components
+
+* Frontend Deployment + Service
+* Backend Deployment + Service
+* MongoDB StatefulSet + Service
+* PersistentVolumeClaim
+* Prometheus Deployment + Service
+* Grafana Deployment + Service
+
+MongoDB is accessed through Kubernetes DNS:
+
+```text
+mongodb://mongodb:27017/mernecommerce
+```
+
+---
+
+## 📊 Monitoring
+
+**Prometheus** collects metrics and **Grafana** visualizes them.
+
+```text
+Kubernetes / Application
+          ↓
+      Prometheus
+          ↓
+       Grafana
+```
+
+Check:
+
+```bash
+kubectl get pods | grep -E "prometheus|grafana"
+kubectl get svc | grep -E "prometheus|grafana"
+```
+
+---
+
+## 🔍 Troubleshooting
+
+```bash
+kubectl get pods
+kubectl logs <pod>
+kubectl logs <pod> --previous
+kubectl describe pod <pod>
+kubectl get events --sort-by=.lastTimestamp
+kubectl get svc
+kubectl get endpoints
+```
+
+Test service connectivity:
+
+```bash
+kubectl exec -it <pod> -- sh
+nc -zv mongodb 27017
+```
+
+Useful for diagnosing:
+
+`CrashLoopBackOff` • `ImagePullBackOff` • `ECONNREFUSED` • Service/DNS issues • Pod connectivity
+
+---
+
+## 🌱 Database Seeder
+
+```bash
+npm run data:import
 npm run data:destroy
 ```
 
-## Sample User Logins
+---
 
-- **Live Admin Dashboard Login:**: [https://mern-shop-abxs.onrender.com/admin/login](https://mern-shop-abxs.onrender.com/admin/login)
+## 🧹 Cleanup
 
-  - Email: admin@admin.com
-  - Password: admin123
+```bash
+kubectl delete -f k8s/
+kind delete cluster
+docker compose down
+```
 
-- **Live Customer Logins:**: [https://mern-shop-abxs.onrender.com/login](https://mern-shop-abxs.onrender.com/login)
-  - John Doe
-    - Email: john@email.com
-    - Password: john123
-  - Alice Smith
-    - Email: alice@email.com
-    - Password: alice123
+---
 
-Feel free to explore and customize this eCommerce platform for your specific needs. Happy coding🤩!
+## 🎯 DevOps Concepts
 
-# Contributing to the eCommerce Platform Project
+**Git/GitHub • Docker • Docker Compose • Kubernetes • Kind • Deployments • Services • StatefulSets • Persistent Storage • Kubernetes Networking • Service Discovery • Prometheus • Grafana • Troubleshooting**
 
-We welcome and appreciate contributions from the community to enhance and improve the eCommerce Platform Project. Whether you're a developer, designer, tester, or someone with valuable feedback, your input is valuable. Here's how you can contribute:
+**Ali Ahmad Shah**
+[GitHub — aliahmadshah56](https://github.com/aliahmadshah56?utm_source=chatgpt.com)
 
-## Getting Started
 
-1. Fork the repository to your GitHub account.
-
-2. Clone the forked repository to your local machine:
-
-   ```bash
-   git clone https://github.com/your-username/MERN-eCommerce.git
-   ```
-
-3. Navigate to the project directory:
-
-   ```bash
-   cd MERN-eCommerce
-   ```
-
-4. Create a new branch for your contributions:
-
-   ```bash
-   git checkout -b feature/your-feature-name
-   git checkout -b issues/your-issue-name
-   ```
-
-## Making Changes
-
-1. Implement your changes and improvements.
-
-2. Ensure that your changes adhere to the project's coding style and conventions.
-
-3. Test your changes thoroughly to avoid introducing bugs.
-
-4. Update the project documentation if necessary.
-
-## Committing Changes
-
-1. Commit your changes with a descriptive commit message:
-
-   ```bash
-   git add .
-   git commit -m "Add your descriptive commit message here"
-   ```
-
-2. Push your changes to your forked repository:
-
-   ```bash
-   git push origin feature/your-feature-name
-   git push origin issues/your-issue-name
-   ```
-
-## Creating a Pull Request (PR)
-
-1. Visit your forked repository on GitHub.
-
-2. Switch to the branch containing your changes.
-
-3. Click on the "New Pull Request" button.
-
-4. Provide a clear title and description for your pull request, explaining the purpose and scope of your changes.
-
-5. Submit the pull request.
-
-## Code Review
-
-Your contribution will be reviewed by the project maintainers. Be prepared to address any feedback or suggestions to ensure the quality and compatibility of your changes.
-
-## Thank You!
-
-Thank you for considering contributing to the eCommerce Platform Project. Your efforts help make this project better for everyone. If you have any questions or need assistance, feel free to reach out through the issue tracker or discussions. Happy coding🤩!
