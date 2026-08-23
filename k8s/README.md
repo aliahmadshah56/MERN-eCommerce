@@ -93,6 +93,9 @@ Check monitoring components:
 kubectl get pods | grep -E "prometheus|grafana"
 ```
 
+<img width="1912" height="892" alt="image" src="https://github.com/user-attachments/assets/7e439fd3-9579-41ae-8434-52b2f9f02333" />
+
+
 ## Troubleshooting
 
 ```bash
