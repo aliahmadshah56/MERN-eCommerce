@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: backend-container
-          image: aliahmadshah/mern-ecommerce-backend:v1
+          image: aliahmadshah/mern-ecommerce-backend:v1.1
           ports:
             - containerPort: 5000
           env:
