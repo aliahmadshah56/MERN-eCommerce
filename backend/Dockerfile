@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Copy root package files (backend dependencies are defined here)
 COPY package*.json ./
-
+#COPY /home/ahmad/g/MERN-eCommerce/package*.json ./
 # Install production dependencies
 RUN npm install 
 
