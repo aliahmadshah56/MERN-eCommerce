@@ -1,0 +1,117 @@
+@Library('Shared') _
+
+pipeline {
+    agent 'any'
+
+    parameters {
+        string(
+            name: 'FRONTEND_DOCKER_TAG',
+            defaultValue: '',
+            description: 'Docker image tag for frontend'
+        )
+
+        string(
+            name: 'BACKEND_DOCKER_TAG',
+            defaultValue: '',
+            description: 'Docker image tag for backend'
+        )
+    }
+
+    stages {
+
+        stage("Validate Parameters") {
+            steps {
+                script {
+                    if (
+                        params.FRONTEND_DOCKER_TAG == '' ||
+                        params.BACKEND_DOCKER_TAG == ''
+                    ) {
+                        error(
+                            "FRONTEND_DOCKER_TAG and BACKEND_DOCKER_TAG must be provided."
+                        )
+                    }
+                }
+            }
+        }
+
+        stage("Workspace Cleanup") {
+            steps {
+                cleanWs()
+            }
+        }
+
+        stage("Git: Code Checkout") {
+            steps {
+                script {
+                    gitclone(
+                        "https://github.com/aliahmadshah56/MERN-eCommerce.git",
+                        "main"
+                    )
+                }
+            }
+        }
+
+        stage("Docker: Build Images") {
+           
+    steps {
+        script {
+
+            // Backend
+            docker_build(
+                imageName: "aliahmadshah/mern-ecommerce-backend",
+                imageTag: params.BACKEND_DOCKER_TAG,
+                dockerfile: "backend/Dockerfile",
+                context: "."
+            )
+
+            // Frontend
+            docker_build(
+                imageName: "aliahmadshah/mern-ecommerce-frontend",
+                imageTag: params.FRONTEND_DOCKER_TAG,
+                dockerfile: "frontend/Dockerfile",
+                context: "./frontend"
+            )
+        }
+    }
+}
+        
+
+        stage("Docker: Push to DockerHub") {
+    steps {
+        script {
+
+            docker_push(
+                imageName: "aliahmadshah/mern-ecommerce-backend",
+                imageTag: params.BACKEND_DOCKER_TAG,
+                credentials: "dockerhub-creds"
+            )
+
+            docker_push(
+                imageName: "aliahmadshah/mern-ecommerce-frontend",
+                imageTag: params.FRONTEND_DOCKER_TAG,
+                credentials: "dockerhub-creds"
+            )
+        }
+    }
+}
+    }
+
+    post {
+        success {
+
+           
+
+            build job: "g-mern-cd",
+                parameters: [
+                    string(
+                        name: 'FRONTEND_DOCKER_TAG',
+                        value: params.FRONTEND_DOCKER_TAG
+                    ),
+                    string(
+                        name: 'BACKEND_DOCKER_TAG',
+                        value: params.BACKEND_DOCKER_TAG
+                    )
+                ]
+        }
+    }
+}

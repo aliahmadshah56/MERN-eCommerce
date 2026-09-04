@@ -1,0 +1,181 @@
+pipeline {
+
+    agent any
+
+    parameters {
+
+        string(
+            name: 'FRONTEND_DOCKER_TAG',
+            defaultValue: '',
+            description: 'Docker image tag for frontend'
+        )
+
+        string(
+            name: 'BACKEND_DOCKER_TAG',
+            defaultValue: '',
+            description: 'Docker image tag for backend'
+        )
+    }
+
+    stages {
+
+        stage("Validate Parameters") {
+            steps {
+                script {
+
+                    if (
+                        !params.FRONTEND_DOCKER_TAG?.trim() ||
+                        !params.BACKEND_DOCKER_TAG?.trim()
+                    ) {
+                        error(
+                            "FRONTEND_DOCKER_TAG and BACKEND_DOCKER_TAG are required."
+                        )
+                    }
+
+                    echo "Frontend Tag: ${params.FRONTEND_DOCKER_TAG}"
+                    echo "Backend Tag: ${params.BACKEND_DOCKER_TAG}"
+                }
+            }
+        }
+
+
+        stage("Workspace Cleanup") {
+            steps {
+                cleanWs()
+            }
+        }
+
+
+        stage("Checkout GitHub Repository") {
+            steps {
+
+                git(
+                    url: 'https://github.com/aliahmadshah56/MERN-eCommerce.git',
+                    branch: 'main',
+                    credentialsId: 'github-creds'
+                )
+            }
+        }
+
+
+        stage("Update Backend Image") {
+            steps {
+
+                sh """
+                    sed -i \
+                    's|image: aliahmadshah/mern-ecommerce-backend:.*|image: aliahmadshah/mern-ecommerce-backend:${BACKEND_DOCKER_TAG}|' \
+                    k8s/back-end-deployment.yml
+                """
+            }
+        }
+
+
+        stage("Update Frontend Image") {
+            steps {
+
+                sh """
+                    sed -i \
+                    's|image: aliahmadshah/mern-ecommerce-frontend:.*|image: aliahmadshah/mern-ecommerce-frontend:${FRONTEND_DOCKER_TAG}|' \
+                    k8s/front-end-deployment.yml
+                """
+            }
+        }
+
+
+        // stage("Verify Kubernetes Manifests") {
+        //     steps {
+
+        //         sh '''
+        //             echo "=============================="
+        //             echo "Backend Image"
+        //             echo "=============================="
+
+        //             grep "image:" k8s/backend-deployment.yml
+
+        //             echo ""
+        //             echo "=============================="
+        //             echo "Frontend Image"
+        //             echo "=============================="
+
+        //             grep "image:" k8s/frontend-deployment.yml
+        //         '''
+        //     }
+        // }
+
+
+        stage("Git Commit") {
+            steps {
+
+                sh """
+                    git config user.name "Jenkins"
+                    git config user.email "jenkins@localhost"
+
+                    git add k8s/back-end-deployment.yml
+                    git add k8s/front-end-deployment.yml
+
+                    git commit \
+                    -m "Update Docker images: frontend-${FRONTEND_DOCKER_TAG}, backend-${BACKEND_DOCKER_TAG}" \
+                    || echo "No changes to commit"
+                """
+            }
+        }
+
+
+        stage("Push Changes to GitHub") {
+            steps {
+
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'gitgub-creds',
+                        usernameVariable: 'GITHUB_USERNAME',
+                        passwordVariable: 'GITHUB_TOKEN'
+                    )
+                ]) {
+
+                    sh '''
+                        git remote set-url origin \
+                        https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/aliahmadshah56/MERN-eCommerce.git
+
+                        git push origin main
+                    '''
+                }
+            }
+        }
+    }
+
+
+    post {
+
+        success {
+
+            echo """
+            ==========================================
+            CD PIPELINE SUCCESS
+            ==========================================
+
+            Frontend:
+            aliahmadshah/mern-ecommerce-frontend:${FRONTEND_DOCKER_TAG}
+
+            Backend:
+            aliahmadshah/mern-ecommerce-backend:${BACKEND_DOCKER_TAG}
+
+            Kubernetes manifests updated.
+            Changes pushed to GitHub.
+
+            ArgoCD can now detect the Git change.
+            ==========================================
+            """
+        }
+
+        failure {
+
+            echo """
+            ==========================================
+            CD PIPELINE FAILED
+            ==========================================
+            Check the failed stage above.
+            ==========================================
+            """
+        }
+    }
+}
