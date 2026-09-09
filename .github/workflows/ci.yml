@@ -63,7 +63,7 @@ jobs:
         run: |
           docker build \
             -f backend/Dockerfile \
-            -t aliahmadsah/mern-ecommerce-backend:${{ inputs.BACKEND_DOCKER_TAG }} \
+            -t aliahmadshah/mern-ecommerce-backend:${{ inputs.BACKEND_DOCKER_TAG }} \
             .
 
       # 5. Build Frontend
@@ -71,20 +71,20 @@ jobs:
         run: |
           docker build \
             -f frontend/Dockerfile \
-            -t aliahmadsah/mern-ecommerce-frontend:${{ inputs.FRONTEND_DOCKER_TAG }} \
+            -t aliahmadshah/mern-ecommerce-frontend:${{ inputs.FRONTEND_DOCKER_TAG }} \
             ./frontend
 
       # 6. Push Backend
       - name: Push Backend Docker Image
         run: |
           docker push \
-            aliahmadsah/mern-ecommerce-backend:${{ inputs.BACKEND_DOCKER_TAG }}
+            aliahmadshah/mern-ecommerce-backend:${{ inputs.BACKEND_DOCKER_TAG }}
 
       # 7. Push Frontend
       - name: Push Frontend Docker Image
         run: |
           docker push \
-            aliahmadsah/mern-ecommerce-frontend:${{ inputs.FRONTEND_DOCKER_TAG }}
+            aliahmadshah/mern-ecommerce-frontend:${{ inputs.FRONTEND_DOCKER_TAG }}
 
       # 8. Show generated images
       - name: Docker Images
