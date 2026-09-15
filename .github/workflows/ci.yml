@@ -16,6 +16,8 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'k8s/**'
 env:
    IMAGE_TAG: ${{ github.sha }}
 
