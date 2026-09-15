@@ -7,6 +7,8 @@ on:
       - MERN Ecommerce CI
     types:
       - completed
+env:
+  IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
 
 jobs:
 
@@ -33,14 +35,14 @@ jobs:
       - name: Update Backend Image
         run: |
           sed -i \
-          "s|aliahmadshah/mern-ecommerce-backend:.*|aliahmadshah/mern-ecommerce-backend:${BACKEND_DOCKER_TAG}|g" \
+          "s|aliahmadshah/mern-ecommerce-backend:.*|aliahmadshah/mern-ecommerce-backend:${IMAGE_TAG}|g" \
           k8s/back-end-deployment.yml
 
       # Update frontend image tag
       - name: Update Frontend Image
         run: |
           sed -i \
-          "s|aliahmadshah/mern-ecommerce-frontend:.*|aliahmadshah/mern-ecommerce-frontend:${FRONTEND_DOCKER_TAG}|g" \
+          "s|aliahmadshah/mern-ecommerce-frontend:.*|aliahmadshah/mern-ecommerce-frontend:${IMAGE_TAG}|g" \
           k8s/front-end-deployment.yml
 
       # Check manifest changes
@@ -58,7 +60,7 @@ jobs:
       - name: Commit Changes
         run: |
           git add k8s/
-          git commit -m "Update Kubernetes image tags"
+          git commit -m "Update Kubernetes image tags to ${IMAGE_TAG}"
 
       # Push changes to GitHub
       - name: Push Changes
