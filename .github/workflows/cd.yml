@@ -34,14 +34,14 @@ jobs:
         run: |
           sed -i \
           "s|aliahmadshah/mern-ecommerce-backend:.*|aliahmadshah/mern-ecommerce-backend:${BACKEND_DOCKER_TAG}|g" \
-          k8s/backend-deployment.yml
+          k8s/back-end-deployment.yml
 
       # Update frontend image tag
       - name: Update Frontend Image
         run: |
           sed -i \
           "s|aliahmadshah/mern-ecommerce-frontend:.*|aliahmadshah/mern-ecommerce-frontend:${FRONTEND_DOCKER_TAG}|g" \
-          k8s/frontend-deployment.yml
+          k8s/front-end-deployment.yml
 
       # Check manifest changes
       - name: Check Changes
