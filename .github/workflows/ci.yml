@@ -1,45 +1,47 @@
 name: MERN Ecommerce CI
 
 on:
-  workflow_dispatch:
-    inputs:
-      FRONTEND_DOCKER_TAG:
-        description: "Docker image tag for frontend"
-        required: true
-        type: string
+  # workflow_dispatch:
+  #   inputs:
+  #     FRONTEND_DOCKER_TAG:
+  #       description: "Docker image tag for frontend"
+  #       required: true
+  #       type: string
 
-      BACKEND_DOCKER_TAG:
-        description: "Docker image tag for backend"
-        required: true
-        type: string
+  #     BACKEND_DOCKER_TAG:
+  #       description: "Docker image tag for backend"
+  #       required: true
+  #       type: string
 
   push:
     branches:
       - main
+env:
+   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
 
-  validate:
-    name: Validate Parameters
-    runs-on: ubuntu-latest
+  # validate:
+  #   name: Validate Parameters
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Validate Docker Tags
-        run: |
-          if [ -z "${{ inputs.FRONTEND_DOCKER_TAG }}" ]; then
-            echo "Frontend Docker tag is required"
-            exit 1
-          fi
+  #   steps:
+  #     - name: Validate Docker Tags
+  #       run: |
+  #         if [ -z "${{ inputs.FRONTEND_DOCKER_TAG }}" ]; then
+  #           echo "Frontend Docker tag is required"
+  #           exit 1
+  #         fi
 
-          if [ -z "${{ inputs.BACKEND_DOCKER_TAG }}" ]; then
-            echo "Backend Docker tag is required"
-            exit 1
-          fi
+  #         if [ -z "${{ inputs.BACKEND_DOCKER_TAG }}" ]; then
+  #           echo "Backend Docker tag is required"
+  #           exit 1
+  #         fi
 
   build-and-push:
     name: Build and Push Docker Images
     runs-on: ubuntu-latest
-    needs: validate
+    
 
     steps:
 
@@ -63,7 +65,7 @@ jobs:
         run: |
           docker build \
             -f backend/Dockerfile \
-            -t aliahmadshah/mern-ecommerce-backend:${{ inputs.BACKEND_DOCKER_TAG }} \
+            -t aliahmadshah/mern-ecommerce-backend:${IMAGE_TAG} \
             .
 
       # 5. Build Frontend
@@ -71,20 +73,21 @@ jobs:
         run: |
           docker build \
             -f frontend/Dockerfile \
-            -t aliahmadshah/mern-ecommerce-frontend:${{ inputs.FRONTEND_DOCKER_TAG }} \
+            -t aliahmadshah/mern-ecommerce-frontend:${IMAGE_TAG} \
             ./frontend
 
       # 6. Push Backend
       - name: Push Backend Docker Image
         run: |
           docker push \
-            aliahmadshah/mern-ecommerce-backend:${{ inputs.BACKEND_DOCKER_TAG }}
+            aliahmadshah/mern-ecommerce-backend:${IMAGE_TAG}
 
       # 7. Push Frontend
       - name: Push Frontend Docker Image
         run: |
           docker push \
-            aliahmadshah/mern-ecommerce-frontend:${{ inputs.FRONTEND_DOCKER_TAG }}
+            aliahmadshah/mern-ecommerce-frontend:${IMAGE_TAG}
+
 
       # 8. Show generated images
       - name: Docker Images
